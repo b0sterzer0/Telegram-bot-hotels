@@ -41,7 +41,6 @@ def input_num_hotels(message) -> None:
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call) -> None:
     if call.data == 'photo_answer_yes':
-        print('OK')
         for hotel in lowprice_command(search_location=lowprice_data_list[0], num_hotels=int(lowprice_data_list[1]),
                                       photo_answer=True):
             bot.send_message(call.message.chat.id, hotel)
@@ -53,7 +52,3 @@ def answer(call) -> None:
 
 
 bot.polling(none_stop=True)
-
-# TODO пересмотреть отбор нужного числа отелей в lowprice
-# TODO пересмотреть структуру
-# TODO добавить вывод фото

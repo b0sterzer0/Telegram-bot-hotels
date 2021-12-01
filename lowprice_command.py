@@ -2,8 +2,6 @@ import requests
 import json
 from translate import Translator
 
-print('Я перешел')
-
 
 def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool = False) -> str:
     """
@@ -17,6 +15,7 @@ def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool =
     translator = Translator(from_lang="russian", to_lang="english")
     search_location = translator.translate(search_location)
 
+    # get destination id
     url = "https://hotels4.p.rapidapi.com/locations/v2/search"
     querystring = {"query": search_location}
     headers = {
@@ -29,40 +28,39 @@ def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool =
 
     destination = ''
 
-    #get destination id
     for place in data["suggestions"][0]["entities"]:
         if place["name"] == search_location.split(', ')[0]:
             destination = place["destinationId"]
 
+    # search hotels
     url = "https://hotels4.p.rapidapi.com/properties/list"
     querystring = {"destinationId": destination}
     response = requests.request("GET", url, headers=headers, params=querystring)
     data_hotels = json.loads(response.text)
 
-    #search hotels
-    start_hotels_list = list()
-    for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:
-        start_hotels_list.append((hotel["ratePlan"]["price"]["current"], hotel))
-
-    hotels_list = sorted(start_hotels_list, key=lambda elem: elem[0]) #sort by price
-
-    #construct answer and return it
+    unsorted_hotels_list = list()
     point = 0
-    for hotel in hotels_list:
+    for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:
         if point != num_hotels:
-            address = hotel[1]["address"]
-            full_address = list()
-            if "postalCode" in address.keys():
-                full_address.append(address["postalCode"])
-            if "streetAddress" in address.keys():
-                full_address.append(address["streetAddress"])
-            if "locality" in address.keys():
-                full_address.append(address["locality"])
-            if "region" in address.keys():
-                full_address.append(address["region"])
-
-            r_data_str = f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}\nЦена: {hotel[0]}'
+            unsorted_hotels_list.append((hotel["ratePlan"]["price"]["current"], hotel))
             point += 1
-            yield r_data_str
         else:
             break
+
+    hotels_list = sorted(unsorted_hotels_list, key=lambda elem: elem[0])  #sort by price
+
+    #construct answer and return it
+    for hotel in hotels_list:
+        address = hotel[1]["address"]
+        full_address = list()
+        if "postalCode" in address.keys():
+            full_address.append(address["postalCode"])
+        if "streetAddress" in address.keys():
+            full_address.append(address["streetAddress"])
+        if "locality" in address.keys():
+            full_address.append(address["locality"])
+        if "region" in address.keys():
+            full_address.append(address["region"])
+
+        r_data_str = f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}\nЦена: {hotel[0]}'
+        yield r_data_str
