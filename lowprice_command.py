@@ -12,9 +12,6 @@ def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool =
     :yield: information about each hotel
     """
 
-    translator = Translator(from_lang="russian", to_lang="english")
-    search_location = translator.translate(search_location)
-
     # get destination id
     url = "https://hotels4.p.rapidapi.com/locations/v2/search"
     querystring = {"query": search_location}
@@ -31,6 +28,7 @@ def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool =
     for place in data["suggestions"][0]["entities"]:
         if place["name"] == search_location.split(', ')[0]:
             destination = place["destinationId"]
+            print(destination)
 
     # search hotels
     url = "https://hotels4.p.rapidapi.com/properties/list"
@@ -42,8 +40,10 @@ def lowprice_command(search_location: str, num_hotels: int, photo_answer: bool =
     point = 0
     for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:
         if point != num_hotels:
-            unsorted_hotels_list.append((hotel["ratePlan"]["price"]["current"], hotel))
-            point += 1
+            print(hotel["name"])
+            if "ratePlan" in hotel.keys():
+                unsorted_hotels_list.append((hotel["ratePlan"]["price"]["current"], hotel))
+                point += 1
         else:
             break
 
