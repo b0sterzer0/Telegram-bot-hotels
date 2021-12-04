@@ -1,5 +1,7 @@
+import rapidapi
 from telebot import types
 from translate import Translator
+from lowprice_and_highprice_commands import lowprice_and_highprice_func
 
 class LowpriceHandlers:
     def __init__(self, bot):
@@ -25,3 +27,17 @@ class LowpriceHandlers:
             msg = self.bot.send_message(message.chat.id, 'Нужно ли выводить фотографии?', reply_markup=inline_markup)
         else:
             self.bot.send_message(message.chat.id, 'Вы превысили лимит отелей!')
+
+    def photo_answer_yes_func(self, message):
+        num = message
+        if 2 <= int(num.text) <= 10:
+            for hotel in lowprice_and_highprice_func(search_location=self.lowprice_data_list[0],
+                                          num_hotels=int(self.lowprice_data_list[1]),
+                                          photo_answer=True, highprice=self.reverse_price):
+                req = rapidapi.MyReqs()
+                media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
+                self.bot.send_media_group(message.chat.id, media=media_group)
+                self.lowprice_data_list.clear()
+        else:
+            self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!")
+            self.lowprice_data_list.clear()

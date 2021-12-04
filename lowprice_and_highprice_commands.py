@@ -11,7 +11,7 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int, photo_ans
     :yield: information about each hotel
     """
 
-    reqs = rapidapi.my_reqs()
+    reqs = rapidapi.MyReqs()
 
     # get destination id
     data = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/locations/v2/search",
@@ -50,6 +50,7 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int, photo_ans
             if "region" in address.keys():
                 full_address.append(address["region"])
 
-            r_data_str = f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}\nЦена: {hotel[0]}'
+            r_data_str = (f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}\nЦена: {hotel[0]}',
+                          hotel[1]["id"])
             point += 1
             yield r_data_str
