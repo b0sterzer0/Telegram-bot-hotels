@@ -31,7 +31,6 @@ def highprice_func(message):
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call) -> None:
     if call.data == 'photo_answer_yes':
-        handlers.reverse_price = False
         msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
         bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
     elif call.data == 'photo_answer_no':
@@ -40,7 +39,6 @@ def answer(call) -> None:
                                       highprice=handlers.reverse_price):
             bot.send_message(call.message.chat.id, hotel[0])
         handlers.lowprice_data_list.clear()
-        handlers.reverse_price = False
 
 
 bot.polling(none_stop=True)
