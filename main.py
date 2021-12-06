@@ -34,11 +34,11 @@ def answer(call) -> None:
         msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
         bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
     elif call.data == 'photo_answer_no':
-        for hotel in lowprice_and_highprice_func(search_location=handlers.lowprice_data_list[0],
-                                      num_hotels=int(handlers.lowprice_data_list[1]),
+        for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[0],
+                                      num_hotels=int(handlers.data_list[1]),
                                       highprice=handlers.reverse_price):
             bot.send_message(call.message.chat.id, hotel[0])
-        handlers.lowprice_data_list.clear()
+        handlers.data_list.clear()
 
 
 bot.polling(none_stop=True)
