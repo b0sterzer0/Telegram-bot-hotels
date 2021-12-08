@@ -9,7 +9,10 @@ class LowpriceHandlers:
         self.lowprice_data_list = list()
         self.reverse_price = False
 
-    def get_city(self, message):
+    def get_city(self, message) -> None:
+        """
+        This method is called from main.py. Adds location for search in list and asks number of hotels
+        """
         translator = Translator(from_lang="russian", to_lang="english")
         search_location = translator.translate(message.text)
         self.lowprice_data_list.append(search_location)
@@ -17,7 +20,11 @@ class LowpriceHandlers:
                                     'Введите количество отелей, которые необходимо вывести (максимум - 15)')
         self.bot.register_next_step_handler(msg, self.get_num_hotels)
 
-    def get_num_hotels(self, message):
+    def get_num_hotels(self, message) -> None:
+        """
+        Next step after get_city. Adds number of hotels in list and asks the need for photos.
+        Creates InlineMarkup and attaches to post.
+        """
         if int(message.text) <= 15:
             self.lowprice_data_list.append(int(message.text))
             inline_markup = types.InlineKeyboardMarkup()
@@ -28,7 +35,10 @@ class LowpriceHandlers:
         else:
             self.bot.send_message(message.chat.id, 'Вы превысили лимит отелей!')
 
-    def photo_answer_yes_func(self, message):
+    def photo_answer_yes_func(self, message) -> None:
+        """
+        This method is called from main.py. Calls lowprice_and_highprice.py
+        """
         num = message
         if 2 <= int(num.text) <= 10:
             for hotel in lowprice_and_highprice_func(search_location=self.lowprice_data_list[0],
