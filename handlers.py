@@ -43,7 +43,7 @@ class LowpriceHandlers:
         if 2 <= int(num.text) <= 10:
             for hotel in lowprice_and_highprice_func(search_location=self.lowprice_data_list[0],
                                           num_hotels=int(self.lowprice_data_list[1]),
-                                          photo_answer=True, highprice=self.reverse_price):
+                                          highprice=self.reverse_price):
                 req = rapidapi.MyReqs()
                 media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
                 self.bot.send_media_group(message.chat.id, media=media_group)
