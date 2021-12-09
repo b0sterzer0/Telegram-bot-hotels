@@ -17,27 +17,42 @@ def say_hi(message) -> None:
 
 @bot.message_handler(commands=['lowprice'])
 def lowprice_func(message) -> None:
+    handlers.data_list.append('lowprice')
     msg = bot.send_message(message.chat.id, 'Введите город и страну, где будет проводиться поиск (Город, Страна)')
     bot.register_next_step_handler(msg, handlers.get_city)
 
 
 @bot.message_handler(commands=['highprice'])
 def highprice_func(message):
+    handlers.data_list.append('highprice')
     handlers.reverse_price = True
     msg = bot.send_message(message.chat.id, 'Введите город и страну, где будет проводиться поиск (Город, Страна)')
     bot.register_next_step_handler(msg, handlers.get_city)
 
 
+@bot.message_handler(commands=['bestdeal'])
+def bestdeal_func(message):
+    handlers.data_list.append('bestdeal')
+    msg = bot.send_message(message.chat.id, 'Введите ценовой диапазон в формате мин. цена - макс. цена')
+    bot.register_next_step_handler(msg, handlers.price_range)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call) -> None:
     if call.data == 'photo_answer_yes':
-        msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
-        bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
+        if handlers.data_list[0] == 'lowprice':
+            msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
+            bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
+        else:
+            pass
     elif call.data == 'photo_answer_no':
-        for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[0],
-                                      num_hotels=int(handlers.data_list[1]),
-                                      highprice=handlers.reverse_price):
-            bot.send_message(call.message.chat.id, hotel[0])
+        if handlers.data_list[0] == 'lowprice':
+            for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[1],
+                                          num_hotels=int(handlers.data_list[2]),
+                                          highprice=handlers.reverse_price):
+                bot.send_message(call.message.chat.id, hotel[0])
+        else:
+            print('bestdeal завершил')
         handlers.data_list.clear()
 
 
