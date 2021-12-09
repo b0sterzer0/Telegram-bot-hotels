@@ -15,7 +15,7 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int,
 
     # get destination id
     data = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/locations/v2/search",
-                              querystring={"query": search_location})
+                              querystring={"query": search_location}) #call method req_to_api from rapidapi.py
     destination = ''
     for place in data["suggestions"][0]["entities"]:
         if place["name"] == search_location.split(', ')[0]:
@@ -24,7 +24,7 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int,
 
     # search hotels
     data_hotels = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/properties/list",
-                                                 querystring={"destinationId": destination})
+                                                 querystring={"destinationId": destination}) #call method req_to_api from rapidapi.py
     unsorted_hotels_list = list()
     if data_hotels["data"]["body"]["searchResults"]["results"]:
         for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:

@@ -1,7 +1,7 @@
 import requests
 import json
 from telebot import types
-from dotenv import load_dotenv, dotenv_values
+from dotenv import dotenv_values
 
 
 class MyReqs:
@@ -19,11 +19,10 @@ class MyReqs:
         :return: data in format JSON
         """
         response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
-        try:
-            response.raise_for_status()
+        if response.status_code: #check request
             return json.loads(response.text)
-        except Exception as exc:
-            print('Ошибка загрузки страницы:' + str(exc))
+        else:
+            print(f'ERROR: ошибка запроса по url: {url}')
 
     def get_photos(self, id_hotel, num_photo, describe):
         """
@@ -36,8 +35,7 @@ class MyReqs:
         url = "https://hotels4.p.rapidapi.com/properties/get-hotel-photos"
         querystring = {"id": int(id_hotel)}
         response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
-        try:
-            response.raise_for_status()
+        if response.status_code:  # check request
             data = json.loads(response.text)
             return_data = list()
             point = 0
@@ -54,5 +52,6 @@ class MyReqs:
                         return_data.append(types.InputMediaPhoto(url_str))
                         point += 1
             return return_data
-        except Exception as exc:
-            print('Ошибка загрузки страницы: ' + str(exc))
+        else:
+            print(f'ERROR: ошибка запроса по url: {url}')
+
