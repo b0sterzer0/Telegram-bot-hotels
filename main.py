@@ -40,19 +40,16 @@ def bestdeal_func(message):
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call) -> None:
     if call.data == 'photo_answer_yes':
-        if handlers.data_list[0] == 'lowprice':
-            msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
-            bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
-        else:
-            pass
+        msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
+        bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
     elif call.data == 'photo_answer_no':
-        if handlers.data_list[0] == 'lowprice':
+        if handlers.data_list[0] == 'lowprice' or handlers.data_list[0] == 'highprice':
             for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[1],
                                           num_hotels=int(handlers.data_list[2]),
                                           highprice=handlers.reverse_price):
                 bot.send_message(call.message.chat.id, hotel[0])
-        else:
-            print('bestdeal завершил')
+        elif handlers.data_list[0] == 'bestdeal':
+            pass
         handlers.data_list.clear()
 
 
