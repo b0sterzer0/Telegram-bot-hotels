@@ -64,10 +64,14 @@ class LowpriceHandlers:
                 for hotel in lowprice_and_highprice_func(search_location=self.data_list[1],
                                               num_hotels=int(self.data_list[2]),
                                               highprice=self.reverse_price):
-                    req = rapidapi.MyReqs()
-                    media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
-                    self.bot.send_media_group(message.chat.id, media=media_group)
-                    self.data_list.clear()
+                    if hotel is None:
+                        print('ERROR: возвращен объект None')
+                        self.data_list.clear()
+                    else:
+                        req = rapidapi.MyReqs()
+                        media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
+                        self.bot.send_media_group(message.chat.id, media=media_group)
+                        self.data_list.clear()
             elif self.data_list[0] == 'bestdeal':
                 pass
         else:

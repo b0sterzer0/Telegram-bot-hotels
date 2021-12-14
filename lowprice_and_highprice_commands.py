@@ -25,6 +25,8 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int,
     # search hotels
     data_hotels = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/properties/list",
                                                  querystring={"destinationId": destination}) #call method req_to_api from rapidapi.py
+    if data_hotels is None:  
+        return None
     unsorted_hotels_list = list()
     if data_hotels["data"]["body"]["searchResults"]["results"]:
         for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:

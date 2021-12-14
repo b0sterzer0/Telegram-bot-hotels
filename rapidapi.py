@@ -18,11 +18,22 @@ class MyReqs:
         :param querystring: data for search
         :return: data in format JSON
         """
-        response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
-        if response.status_code: #check request
-            return json.loads(response.text)
-        else:
-            print(f'ERROR: ошибка запроса по url: {url}')
+        try:
+            response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
+            if response.status_code == 200:  # check request
+                return json.loads(response.text)
+            elif response.status_code == 400:
+                print(f'ERROR: ошибка синтаксиса запроса (400) URL: {url}')
+            elif response.status_code == 401:
+                print(f'ERROR: ошибка доступа (401) URL: {url}')
+            elif response.status_code == 402:
+                print(f'ERROR: нестандартная ошибка клиента (402) URL: {url}')
+            elif response.status_code == 403:
+                print(f'ERROR: ограничение или отсутствие доступа к материалу на странице (403) URL: {url}')
+            elif response.status_code == 404:
+                print(f'ERROR: ошибка запроса по url: {url} (404)')
+        except requests.exceptions.RequestException.Timeout:
+            print('ERROR: превышен лимит ожидания ответа')
 
     def get_photos(self, id_hotel, num_photo, describe):
         """
@@ -34,24 +45,35 @@ class MyReqs:
         """
         url = "https://hotels4.p.rapidapi.com/properties/get-hotel-photos"
         querystring = {"id": int(id_hotel)}
-        response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
-        if response.status_code:  # check request
-            data = json.loads(response.text)
-            return_data = list()
-            point = 0
-            for photo_data in data["hotelImages"]:
-                if point != num_photo:
-                    if point == 0:
-                        url_list = photo_data["baseUrl"].split('{size}')
-                        url_str = url_list[0] + 'z' + url_list[1]
-                        return_data.append(types.InputMediaPhoto(url_str, caption=describe))
-                        point += 1
-                    else:
-                        url_list = photo_data["baseUrl"].split('{size}')
-                        url_str = url_list[0] + 'z' + url_list[1]
-                        return_data.append(types.InputMediaPhoto(url_str))
-                        point += 1
-            return return_data
-        else:
-            print(f'ERROR: ошибка запроса по url: {url}')
+        try:
+            response = requests.request("GET", url, headers=self.headers, params=querystring, timeout=10)
+            if response.status_code == 200:  # check request
+                data = json.loads(response.text)
+                return_data = list()
+                point = 0
+                for photo_data in data["hotelImages"]:
+                    if point != num_photo:
+                        if point == 0:
+                            url_list = photo_data["baseUrl"].split('{size}')
+                            url_str = url_list[0] + 'z' + url_list[1]
+                            return_data.append(types.InputMediaPhoto(url_str, caption=describe))
+                            point += 1
+                        else:
+                            url_list = photo_data["baseUrl"].split('{size}')
+                            url_str = url_list[0] + 'z' + url_list[1]
+                            return_data.append(types.InputMediaPhoto(url_str))
+                            point += 1
+                return return_data
+            elif response.status_code == 400:
+                print(f'ERROR: ошибка синтаксиса запроса (400) URL: {url}')
+            elif response.status_code == 401:
+                print(f'ERROR: ошибка доступа (401) URL: {url}')
+            elif response.status_code == 402:
+                print(f'ERROR: нестандартная ошибка клиента (402) URL: {url}')
+            elif response.status_code == 403:
+                print(f'ERROR: ограничение или отсутствие доступа к материалу на странице (403) URL: {url}')
+            elif response.status_code == 404:
+                print(f'ERROR: ошибка запроса по url: {url} (404)')
+        except requests.exceptions.RequestException.Timeout:
+            print('ERROR: превышен лимит ожиданния ответа')
 

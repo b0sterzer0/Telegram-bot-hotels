@@ -47,7 +47,10 @@ def answer(call) -> None:
             for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[1],
                                           num_hotels=int(handlers.data_list[2]),
                                           highprice=handlers.reverse_price):
-                bot.send_message(call.message.chat.id, hotel[0])
+                if hotel is None:
+                    print('ERROR: возвращен объект None')
+                else:
+                    bot.send_message(call.message.chat.id, hotel[0])
         elif handlers.data_list[0] == 'bestdeal':
             pass
         handlers.data_list.clear()
