@@ -2,9 +2,9 @@ import rapidapi
 
 
 def lowprice_and_highprice_func(search_location: str, num_hotels: int,
-                                highprice: bool = False) -> str:
+                                command_name: str) -> str:
     """
-    This generator finds the cheapest hotels
+    This generator finds the cheapest or most expensive hotels
     :param search_location: str -> location to search
     :param num_hotels: int -> number of hotels
     :param photo_answer: bool -> need photos
@@ -28,14 +28,15 @@ def lowprice_and_highprice_func(search_location: str, num_hotels: int,
     if data_hotels is None:  
         return None
     unsorted_hotels_list = list()
+    hotels_list = list()
     if data_hotels["data"]["body"]["searchResults"]["results"]:
         for hotel in data_hotels["data"]["body"]["searchResults"]["results"]:
             if "ratePlan" in hotel.keys():
                 unsorted_hotels_list.append((hotel["ratePlan"]["price"]["current"], hotel))
 
-        if highprice is False:
+        if command_name == 'lowprice':
             hotels_list = sorted(unsorted_hotels_list, key=lambda elem: elem[0])  # sort by price
-        else:
+        elif command_name == 'highprice':
             hotels_list = sorted(unsorted_hotels_list, key=lambda elem: elem[0], reverse=True)
 
         #construct answer and return it

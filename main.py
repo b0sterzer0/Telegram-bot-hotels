@@ -1,6 +1,7 @@
 import telebot
 import handlers
 from lowprice_and_highprice_commands import lowprice_and_highprice_func
+from bestdeal_command import bestdeal_command_func
 from dotenv import load_dotenv, dotenv_values
 
 
@@ -40,19 +41,28 @@ def bestdeal_func(message):
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call) -> None:
     if call.data == 'photo_answer_yes':
+        if handlers.data_list[0] == 'highprice':
+            handlers.reverse_price = True
         msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
         bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
     elif call.data == 'photo_answer_no':
         if handlers.data_list[0] == 'lowprice' or handlers.data_list[0] == 'highprice':
             for hotel in lowprice_and_highprice_func(search_location=handlers.data_list[1],
                                           num_hotels=int(handlers.data_list[2]),
-                                          highprice=handlers.reverse_price):
+                                          command_name=handlers.data_list[0]):
                 if hotel is None:
                     print('ERROR: возвращен объект None')
                 else:
                     bot.send_message(call.message.chat.id, hotel[0])
         elif handlers.data_list[0] == 'bestdeal':
-            pass
+            for hotel in bestdeal_command_func(price_range=handlers.data_list[1],
+                                               distance_range=handlers.data_list[2],
+                                               search_location=handlers.data_list[3],
+                                               num_hotels=handlers.data_list[4]):
+                if hotel is None:
+                    print('ERROR: возвращен объект None')
+                else:
+                    bot.send_message(call.message.chat.id, hotel[0])
         handlers.data_list.clear()
 
 

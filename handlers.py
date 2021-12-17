@@ -2,6 +2,7 @@ import rapidapi
 from telebot import types
 from translate import Translator
 from lowprice_and_highprice_commands import lowprice_and_highprice_func
+from bestdeal_command import bestdeal_command_func
 
 class LowpriceHandlers:
     def __init__(self, bot):
@@ -13,19 +14,18 @@ class LowpriceHandlers:
         """
         This method call from main.py. Adds in list price range and asks distance range
         """
-        self.data_list.append(message.text.split('-'))
+        self.data_list.append([float(num) for num in message.text.split('-')])
         msg = self.bot.send_message(message.chat.id,
-                                    'Введите диапозон расстояния от центра')
+                                    'Введите диапозон расстояния от центра в формате цифра-цифра')
         self.bot.register_next_step_handler(msg, self.distance_range)
 
     def distance_range(self, message) -> None:
         """
         Next step after price_range. This method adds distance range in list and asks location for search
         """
-        distance = int(message.text.split()[0])
-        self.data_list.append(distance)
+        self.data_list.append([float(num) for num in message.text.split('-')])
         msg = self.bot.send_message(message.chat.id,
-                                    'Введите город и страну, где будет проводиться поиск (Город, Страна)')
+                                    'Введите город и страну, где будет проводиться поиск в формате Город, Страна')
         self.bot.register_next_step_handler(msg, self.get_city)
         
     def get_city(self, message) -> None:
@@ -63,17 +63,15 @@ class LowpriceHandlers:
             if self.data_list[0] == 'lowprice' or self.data_list[0] == 'highprice':
                 for hotel in lowprice_and_highprice_func(search_location=self.data_list[1],
                                               num_hotels=int(self.data_list[2]),
-                                              highprice=self.reverse_price):
+                                              command_name=self.data_list[0]):
                     if hotel is None:
                         print('ERROR: возвращен объект None')
-                        self.data_list.clear()
                     else:
                         req = rapidapi.MyReqs()
                         media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
                         self.bot.send_media_group(message.chat.id, media=media_group)
-                        self.data_list.clear()
             elif self.data_list[0] == 'bestdeal':
                 pass
         else:
             self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!")
-            self.data_list.clear()
+        self.data_list.clear()
