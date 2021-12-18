@@ -1,20 +1,20 @@
 import rapidapi
 from telebot import types
 from translate import Translator
-from lowprice_and_highprice_commands import lowprice_and_highprice_func
-from bestdeal_command import bestdeal_command_func
+from commands import main_generator
+
 
 class LowpriceHandlers:
     def __init__(self, bot):
         self.bot = bot
-        self.data_list = list()
+        self.data_dict = dict()
         self.reverse_price = False
 
     def price_range(self, message) -> None:
         """
         This method call from main.py. Adds in list price range and asks distance range
         """
-        self.data_list.append([float(num) for num in message.text.split('-')])
+        self.data_dict["price_range"] = [float(num) for num in message.text.split('-')]
         msg = self.bot.send_message(message.chat.id,
                                     'Введите диапозон расстояния от центра в формате цифра-цифра')
         self.bot.register_next_step_handler(msg, self.distance_range)
@@ -23,7 +23,7 @@ class LowpriceHandlers:
         """
         Next step after price_range. This method adds distance range in list and asks location for search
         """
-        self.data_list.append([float(num) for num in message.text.split('-')])
+        self.data_dict["distance_range"] = [float(num) for num in message.text.split('-')]
         msg = self.bot.send_message(message.chat.id,
                                     'Введите город и страну, где будет проводиться поиск в формате Город, Страна')
         self.bot.register_next_step_handler(msg, self.get_city)
@@ -34,7 +34,7 @@ class LowpriceHandlers:
         """
         translator = Translator(from_lang="russian", to_lang="english")
         search_location = translator.translate(message.text)
-        self.data_list.append(search_location)
+        self.data_dict["search_location"] = search_location
         msg = self.bot.send_message(message.chat.id,
                                     'Введите количество отелей, которые необходимо вывести (максимум - 15)')
         self.bot.register_next_step_handler(msg, self.get_num_hotels)
@@ -45,7 +45,7 @@ class LowpriceHandlers:
         Creates InlineMarkup and attaches to post.
         """
         if int(message.text) <= 15:
-            self.data_list.append(int(message.text))
+            self.data_dict["num_hotels"] = int(message.text)
             inline_markup = types.InlineKeyboardMarkup()
             answer_yes = types.InlineKeyboardButton('Да', callback_data='photo_answer_yes')
             answer_no = types.InlineKeyboardButton('Нет', callback_data='photo_answer_no')
@@ -60,18 +60,13 @@ class LowpriceHandlers:
         """
         num = message
         if 2 <= int(num.text) <= 10:
-            if self.data_list[0] == 'lowprice' or self.data_list[0] == 'highprice':
-                for hotel in lowprice_and_highprice_func(search_location=self.data_list[1],
-                                              num_hotels=int(self.data_list[2]),
-                                              command_name=self.data_list[0]):
-                    if hotel is None:
-                        print('ERROR: возвращен объект None')
-                    else:
-                        req = rapidapi.MyReqs()
-                        media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
-                        self.bot.send_media_group(message.chat.id, media=media_group)
-            elif self.data_list[0] == 'bestdeal':
-                pass
+            for hotel in main_generator(self.data_dict):
+                if hotel is None:
+                    print('ERROR: возвращен объект None')
+                else:
+                    req = rapidapi.MyReqs()
+                    media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
+                    self.bot.send_media_group(message.chat.id, media=media_group)
         else:
             self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!")
-        self.data_list.clear()
+        self.data_dict.clear()
