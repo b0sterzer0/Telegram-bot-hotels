@@ -2,6 +2,10 @@ import rapidapi
 
 
 def get_data(search_location: str):
+    """
+    This function gets data from api and returns them in json format
+    :param search_location: location for search
+    """
     reqs = rapidapi.MyReqs()
 
     # get destination id
@@ -21,6 +25,12 @@ def get_data(search_location: str):
     
 
 def lowprice_and_highprice_func(data, command_name: str) -> list:
+    """
+    This function This function implements the functionality of the commands lowprice and highprice
+    :param data: json data from api
+    :param command_name: name of command (lowprice or highprice)
+    :return: sorted list of hotels
+    """
     unsorted_hotels_list = list()
     hotels_list = list()
     if data["data"]["body"]["searchResults"]["results"]:
@@ -36,7 +46,14 @@ def lowprice_and_highprice_func(data, command_name: str) -> list:
     return hotels_list
 
  
-def bestdeal_func(data, distance_range, price_range):
+def bestdeal_func(data, distance_range: list, price_range: list) -> list:
+    """
+    This function This function implements the functionality of the command bestdeal
+    :param data: json data from api
+    :param distance_range: min and max distance from city center
+    :param price_range: min and max current price
+    :return: list of hotels
+    """
     hotels_list = list()
 
     if data["data"]["body"]["searchResults"]["results"]:
@@ -44,17 +61,22 @@ def bestdeal_func(data, distance_range, price_range):
             if hotel["landmarks"] and hotel["ratePlan"]["price"]["current"]:
                 for elem in hotel["landmarks"]:
                     e_keys = list(elem.keys())
-                    if elem[e_keys[0]] == "City center" and elem[e_keys[1]] == "distance":
-                        distance = round(float(distance_range.split()[0] * 1.6), 2)
+                    if elem[e_keys[0]] == "City center":
+                        distance = round(float(elem["distance"].split()[0]) * 1.6, 2)
                         price = float(hotel["ratePlan"]["price"]["current"][1:])
                         if distance_range[0] <= distance <= distance_range[1] and price_range[0] <= price <= \
                                 price_range[1]:
-                            hotels_list.append((distance, price, hotel))
-    
+                            hotels_list.append((price, hotel))
+
     return hotels_list
 
 
-def main_generator(data_dict: list) -> str:
+def main_generator(data_dict: dict) -> str:
+    """
+    Generator.From here, the rest of the module's functions are launched.
+    Collect all data about hotels and returns string with data about each hotel at each step
+    :param data_dict: a dictionary with user data passed from the handlers.py
+    """
     hotels_data = get_data(data_dict["search_location"])
     hotels_list = list()
     
@@ -64,6 +86,9 @@ def main_generator(data_dict: list) -> str:
         hotels_list = bestdeal_func(data=hotels_data, distance_range=data_dict["distance_range"], price_range=data_dict[
             "price_range"
         ])
+    
+    if hotels_list is None:
+        return 'NORESULTS'
     
     point = 0
     for hotel in hotels_list:

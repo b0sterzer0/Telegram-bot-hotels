@@ -63,6 +63,8 @@ class LowpriceHandlers:
             for hotel in main_generator(self.data_dict):
                 if hotel is None:
                     print('ERROR: возвращен объект None')
+                elif hotel == 'NORESULTS':
+                    self.bot.send_message(message.chat.id, 'К сожалению, по вашим притериям ничего не найдено')
                 else:
                     req = rapidapi.MyReqs()
                     media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
