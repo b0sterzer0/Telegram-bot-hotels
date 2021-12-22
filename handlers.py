@@ -14,16 +14,16 @@ class LowpriceHandlers:
         """
         This method call from main.py. Adds in list price range and asks distance range
         """
-        self.data_dict["price_range"] = [float(num) for num in message.text.split('-')]
+        self.data_dict["price_range"] = [int(num) for num in message.text.split('-')]
         msg = self.bot.send_message(message.chat.id,
-                                    'Введите диапозон расстояния от центра в формате цифра-цифра')
+                                    'Введите диапозон расстояния от центра в формате цифра-цифра (в метрах)')
         self.bot.register_next_step_handler(msg, self.distance_range)
 
     def distance_range(self, message) -> None:
         """
         Next step after price_range. This method adds distance range in list and asks location for search
         """
-        self.data_dict["distance_range"] = [float(num) for num in message.text.split('-')]
+        self.data_dict["distance_range"] = [round(float(num) / 1000 / 1.6, 2) for num in message.text.split('-')]
         msg = self.bot.send_message(message.chat.id,
                                     'Введите город и страну, где будет проводиться поиск в формате Город, Страна')
         self.bot.register_next_step_handler(msg, self.get_city)
@@ -60,15 +60,10 @@ class LowpriceHandlers:
         """
         num = message
         if 2 <= int(num.text) <= 10:
-            for hotel in main_generator(self.data_dict):
-                if hotel is None:
-                    print('ERROR: возвращен объект None')
-                elif hotel == 'NORESULTS':
-                    self.bot.send_message(message.chat.id, 'К сожалению, по вашим притериям ничего не найдено')
-                else:
-                    req = rapidapi.MyReqs()
-                    media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
-                    self.bot.send_media_group(message.chat.id, media=media_group)
+            for hotel in main_generator(self.data_dict, bot=self.bot, chat_id=message.chat.id):
+                req = rapidapi.MyReqs()
+                media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
+                self.bot.send_media_group(message.chat.id, media=media_group)
         else:
             self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!")
         self.data_dict.clear()

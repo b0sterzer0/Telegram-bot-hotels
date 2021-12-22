@@ -45,11 +45,8 @@ def answer(call) -> None:
         msg = bot.send_message(call.message.chat.id, 'Введите количество фотографий (от 2 до 10):')
         bot.register_next_step_handler(msg, handlers.photo_answer_yes_func)
     elif call.data == 'photo_answer_no':
-        for hotel in main_generator(handlers.data_dict):
-            if hotel is None:
-                raise ValueError("Возвращен пустой объект")
-            else:
-                bot.send_message(call.message.chat.id, hotel[0])
+        for hotel in main_generator(handlers.data_dict, bot=bot, chat_id=call.message.chat.id):
+            bot.send_message(call.message.chat.id, hotel[0])
 
         handlers.data_dict.clear()
 
