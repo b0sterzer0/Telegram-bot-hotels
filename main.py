@@ -33,7 +33,7 @@ def highprice_func(message):
 @bot.message_handler(commands=['bestdeal'])
 def bestdeal_func(message):
     handlers.data_dict["command_name"] = 'bestdeal'
-    msg = bot.send_message(message.chat.id, 'Введите ценовой диапазон в формате мин. цена-макс. цена')
+    msg = bot.send_message(message.chat.id, 'Введите ценовой диапазон:')
     bot.register_next_step_handler(msg, handlers.price_range)
 
 

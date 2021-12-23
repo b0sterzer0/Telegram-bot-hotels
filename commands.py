@@ -1,5 +1,7 @@
 import rapidapi
 from telebot import types
+from pycbrf.toolbox import ExchangeRates
+from datetime import datetime
 
 
 def get_data(search_location: str, price_min=1, price_max=1000, sort_order='NONE'):
@@ -128,8 +130,10 @@ def main_generator(data_dict: dict, bot, chat_id) -> str:
                         distance_from_center = round(float(landmark["distance"].split()[0]) * 1.6, 2)
 
             # result string with info about hotel for return
+            rates = ExchangeRates(datetime.date(datetime.now()))
+            price = int(float(hotel[0][1:]) * float(rates['USD'].value))
             r_data_str = (f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}'
-                          f'\nРасположение от центра: {distance_from_center} км.\nЦена: {hotel[0]}/сутки',
+                          f'\nРасположение от центра: {distance_from_center} км.\nЦена: {price} руб./сутки',
                           hotel[1]["id"])
             point += 1
             yield r_data_str
