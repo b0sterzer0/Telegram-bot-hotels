@@ -1,6 +1,7 @@
 import rapidapi
 from telebot import types
-from pycbrf.toolbox import ExchangeRates
+from urllib.request import urlopen
+from xml.etree.ElementTree import fromstring
 from datetime import datetime
 
 
@@ -130,8 +131,13 @@ def main_generator(data_dict: dict, bot, chat_id) -> str:
                         distance_from_center = round(float(landmark["distance"].split()[0]) * 1.6, 2)
 
             # result string with info about hotel for return
-            rates = ExchangeRates(datetime.date(datetime.now()))
-            price = int(float(hotel[0][1:]) * float(rates['USD'].value))
+            response = urlopen('https://www.cbr-xml-daily.ru/daily_utf8.xml')
+            xml_tree = fromstring(response.read())
+            result = [float(price.text.replace(',', '.'))
+                      for name, price in zip(xml_tree.iter('Name'),
+                                             xml_tree.iter('Value'))
+                      if name.text == 'Доллар США']
+            price = int(float(hotel[0][1:]) * result[0])
             r_data_str = (f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}'
                           f'\nРасположение от центра: {distance_from_center} км.\nЦена: {price} руб./сутки',
                           hotel[1]["id"])
