@@ -31,7 +31,6 @@ class MyReqs:
         except exceptions.ConnectTimeout:
             raise RuntimeError('Превышено время ожидания ответа на запрос')
 
-
     def get_photos(self, id_hotel, num_photo, describe):
         """
         This method finds photos and returns data in format InputMediaPhoto
