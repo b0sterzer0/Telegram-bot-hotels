@@ -46,6 +46,3 @@ def get_history_data_generator() -> str:
             yield r_str
     else:
         return 'История поиска еще пустая'
-
-
-# TODO Написать readme
