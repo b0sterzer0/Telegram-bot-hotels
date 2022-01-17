@@ -3,6 +3,8 @@ import json
 from telebot import types
 from dotenv import dotenv_values
 from requests import exceptions
+from urllib.request import urlopen
+from xml.etree.ElementTree import fromstring
 
 
 class MyReqs:
@@ -68,3 +70,18 @@ class MyReqs:
         except exceptions.ConnectTimeout:
             raise RuntimeError('Превышено время ожидания ответа на запрос')
 
+    def currency_converter(self, price_nums_list: list, mod: str):
+        response = urlopen('https://www.cbr-xml-daily.ru/daily_utf8.xml')
+        xml_tree = fromstring(response.read())
+        result = [float(price.text.replace(',', '.'))
+                  for name, price in zip(xml_tree.iter('Name'), xml_tree.iter('Value'))
+                  if name.text == 'Доллар США']
+
+        r_list = list()
+        for price_num in price_nums_list:
+            if mod == "RUB/USD":
+                r_list.append(int(float(price_num) / result[0]))
+            elif mod == "USD/RUB":
+                r_list.append(int(float(price_num) * result[0]))
+
+        return r_list

@@ -1,11 +1,14 @@
-import rapidapi
+import custom_requests
 import re
+import history
 from telebot import types
 from translate import Translator
 from commands import main_generator
 
 
-class LowpriceHandlers:
+reqs = custom_requests.MyReqs()
+
+class MainHandlers:
     def __init__(self, bot):
         self.bot = bot
         self.data_dict = dict()
@@ -16,9 +19,10 @@ class LowpriceHandlers:
         This method call from main.py. Adds in list price range and asks distance range
         """
         price_list = re.findall(r'\d+', message.text)
-        self.data_dict["price_range"] = [int(num) for num in price_list]
+        self.data_dict["price_range"] = [num for num in
+                                         reqs.currency_converter(price_nums_list=price_list, mod="RUB/USD")]
         msg = self.bot.send_message(message.chat.id,
-                                    'Введите диапозон расстояния от центра:')
+                                    'Введите диапозон расстояния от центра (в метрах):')
         self.bot.register_next_step_handler(msg, self.distance_range)
 
     def distance_range(self, message) -> None:
@@ -62,11 +66,17 @@ class LowpriceHandlers:
         This method is called from main.py. Calls lowprice_and_highprice.py
         """
         num = message
+        all_hotels_info = list()
         if 2 <= int(num.text) <= 10:
             for hotel in main_generator(self.data_dict, bot=self.bot, chat_id=message.chat.id):
-                req = rapidapi.MyReqs()
-                media_group = req.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel[0])
+                hotel_data = "".join(hotel[0].values())
+                all_hotels_info.append(hotel[0])
+                media_group = reqs.get_photos(id_hotel=hotel[1], num_photo=int(message.text), describe=hotel_data)
                 self.bot.send_media_group(message.chat.id, media=media_group)
+
+            data_for_history = [all_hotels_info, self.data_dict["command_name"]]
+            history.add_instance(data_for_history)
         else:
-            self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!")
+            self.bot.send_message(message.chat.id, "Вы ввели недопустимое количество фотографий!"
+                                                   " Введите комманду заново.")
         self.data_dict.clear()

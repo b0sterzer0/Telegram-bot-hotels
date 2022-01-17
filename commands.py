@@ -1,9 +1,9 @@
-import rapidapi
-from telebot import types
+import custom_requests
 from urllib.request import urlopen
 from xml.etree.ElementTree import fromstring
-from datetime import datetime
 
+
+reqs = custom_requests.MyReqs()
 
 def get_data(search_location: str, price_min=1, price_max=1000, sort_order='NONE'):
     """
@@ -13,11 +13,10 @@ def get_data(search_location: str, price_min=1, price_max=1000, sort_order='NONE
     :param price_max: max price for hotels
     :param sort_order: the sort order
     """
-    reqs = rapidapi.MyReqs()
 
     # get destination id
     data = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/locations/v2/search",
-                           querystring={"query": search_location})  # call method req_to_api from rapidapi.py
+                           querystring={"query": search_location})  # call method req_to_api from custom_requests.py
     destination = ''
     for place in data["suggestions"][0]["entities"]:
         if place["name"] == search_location.split(', ')[0]:
@@ -28,7 +27,7 @@ def get_data(search_location: str, price_min=1, price_max=1000, sort_order='NONE
     data_hotels = reqs.req_to_api(url="https://hotels4.p.rapidapi.com/properties/list",
                                   querystring={"destinationId": destination, "currency": "USD", "priceMin": price_min,
                                                "priceMax": price_max, "landmarkIds": "City center",
-                                               "sortOrder": sort_order})  # call method req_to_api from rapidapi.py
+                                               "sortOrder": sort_order})  # call method req_to_api from custom_requests.py
     
     return data_hotels
     
@@ -131,15 +130,12 @@ def main_generator(data_dict: dict, bot, chat_id) -> str:
                         distance_from_center = round(float(landmark["distance"].split()[0]) * 1.6, 2)
 
             # result string with info about hotel for return
-            response = urlopen('https://www.cbr-xml-daily.ru/daily_utf8.xml')
-            xml_tree = fromstring(response.read())
-            result = [float(price.text.replace(',', '.'))
-                      for name, price in zip(xml_tree.iter('Name'),
-                                             xml_tree.iter('Value'))
-                      if name.text == 'Доллар США']
-            price = int(float(hotel[0][1:]) * result[0])
-            r_data_str = (f'\nНазвание отеля: {hotel[1]["name"]}\nАдресс: {" ".join(full_address)}'
-                          f'\nРасположение от центра: {distance_from_center} км.\nЦена: {price} руб./сутки',
-                          hotel[1]["id"])
+            price = reqs.currency_converter([hotel[0][1:]], "USD/RUB")[0]
+            r_data_tuple = ({
+                "hotel_name": f'Название отеля: {hotel[1]["name"]}\n',
+                "address": f'Адресс: {" ".join(full_address)}\n',
+                "distance_from_center": f'Расположение от центра: {distance_from_center} км.\n',
+                "price": f'Цена: {price} руб./сутки'
+                            }, hotel[1]["id"])
             point += 1
-            yield r_data_str
+            yield r_data_tuple
