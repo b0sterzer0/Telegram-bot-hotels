@@ -1,9 +1,8 @@
 import custom_requests
-from urllib.request import urlopen
-from xml.etree.ElementTree import fromstring
 
 
 reqs = custom_requests.MyReqs()
+
 
 def get_data(search_location: str, price_min=1, price_max=1000, sort_order='NONE'):
     """

@@ -1,4 +1,5 @@
-from peewee import *
+from peewee import SqliteDatabase, Model, CharField, DateTimeField
+from playhouse.sqlite_ext import JSONField
 
 db = SqliteDatabase('bot.db')
 
@@ -9,7 +10,7 @@ class Log(Model):
     """
     command_name = CharField()
     date_and_time = DateTimeField()
-    hotels_data = CharField()
+    hotels_data = JSONField()
 
     class Meta:
         database = db
